@@ -35,11 +35,16 @@ function getRedis(): Redis {
   return client;
 }
 
+export async function clearDocuments(): Promise<void> {
+  const redis = getRedis();
+  await redis.del(DOCUMENTS_KEY, CHUNKS_KEY);
+}
+
 // Only one document is kept at a time — uploading a new one replaces
 // whatever was there before, rather than accumulating a library.
 export async function addDocument(document: DocumentSummary, documentChunks: DocumentChunk[]): Promise<void> {
   const redis = getRedis();
-  await redis.del(DOCUMENTS_KEY, CHUNKS_KEY);
+  await clearDocuments();
   await redis.hset(DOCUMENTS_KEY, { [document.id]: document });
 
   if (documentChunks.length > 0) {

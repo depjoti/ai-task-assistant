@@ -1,17 +1,20 @@
 "use client";
 
-import { FileText, UploadCloud } from "lucide-react";
+import { FileText, UploadCloud, X } from "lucide-react";
 import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { getApiErrorMessage } from "@/lib/api/errors";
-import { useListDocumentsQuery, useUploadDocumentMutation } from "../api/documentsApi";
+import { useDeleteDocumentMutation, useListDocumentsQuery, useUploadDocumentMutation } from "../api/documentsApi";
 
 export function DocumentUploader() {
   const { data: documents = [], isLoading: isListLoading } = useListDocumentsQuery();
   const [uploadDocument, { isLoading: isUploading, error }] = useUploadDocumentMutation();
+  const [deleteDocument, { isLoading: isDeleting }] = useDeleteDocumentMutation();
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -87,9 +90,27 @@ export function DocumentUploader() {
                 <FileText className="text-muted-foreground size-4 shrink-0" />
                 <span className="truncate">{doc.name}</span>
               </span>
-              <Badge variant="secondary" className="shrink-0">
-                {doc.chunkCount} chunks
-              </Badge>
+              <span className="flex shrink-0 items-center gap-2">
+                <Badge variant="secondary">{doc.chunkCount} chunks</Badge>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="text-muted-foreground hover:text-destructive size-6"
+                        onClick={() => deleteDocument()}
+                        disabled={isDeleting}
+                        aria-label="Remove document"
+                      >
+                        <X className="size-3.5" />
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>Remove document</TooltipContent>
+                </Tooltip>
+              </span>
             </li>
           ))}
         </ul>

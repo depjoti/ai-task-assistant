@@ -26,7 +26,7 @@ vi.mock("@/lib/env", () => ({
   requireEnv: vi.fn(() => "test-value"),
 }));
 
-import { addDocument, listDocuments, searchTopK } from "./store";
+import { addDocument, clearDocuments, listDocuments, searchTopK } from "./store";
 
 describe("document store", () => {
   beforeEach(() => {
@@ -93,5 +93,16 @@ describe("document store", () => {
 
     const results = await searchTopK([0, 1], 10);
     expect(results.map((r) => r.id)).toEqual(["c2"]);
+  });
+
+  it("clears the document and its chunks", async () => {
+    await addDocument({ id: "doc-1", name: "a.txt", chunkCount: 1 }, [
+      { id: "c1", documentId: "doc-1", documentName: "a.txt", content: "hello", embedding: [1, 0] },
+    ]);
+
+    await clearDocuments();
+
+    expect(await listDocuments()).toEqual([]);
+    expect(await searchTopK([1, 0], 5)).toEqual([]);
   });
 });

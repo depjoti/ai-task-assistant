@@ -30,7 +30,16 @@ export const documentsApi = createApi({
     askQuestion: builder.mutation<AskResponse, AskRequest>({
       query: (body) => ({ url: "/ask", method: "POST", body }),
     }),
+    deleteDocument: builder.mutation<void, void>({
+      query: () => ({ url: "", method: "DELETE" }),
+      invalidatesTags: ["Document"],
+    }),
   }),
 });
 
-export const { useListDocumentsQuery, useUploadDocumentMutation, useAskQuestionMutation } = documentsApi;
+export const {
+  useListDocumentsQuery,
+  useUploadDocumentMutation,
+  useAskQuestionMutation,
+  useDeleteDocumentMutation,
+} = documentsApi;
