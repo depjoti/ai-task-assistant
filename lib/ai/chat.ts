@@ -1,3 +1,4 @@
+import { getEnv } from "@/lib/env";
 import { getOpenAIClient } from "./client";
 
 interface StreamChatCompletionArgs {
@@ -5,13 +6,13 @@ interface StreamChatCompletionArgs {
   systemPrompt?: string;
 }
 
-const CHAT_MODEL = "gpt-4o-mini";
+const DEFAULT_CHAT_MODEL = "gpt-4o-mini";
 
 export async function streamChatCompletion({ messages, systemPrompt }: StreamChatCompletionArgs) {
   const client = getOpenAIClient();
 
   return client.chat.completions.create({
-    model: CHAT_MODEL,
+    model: getEnv().OPENAI_MODEL ?? DEFAULT_CHAT_MODEL,
     stream: true,
     messages: [
       ...(systemPrompt ? [{ role: "system" as const, content: systemPrompt }] : []),

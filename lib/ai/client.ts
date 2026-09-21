@@ -6,7 +6,8 @@ let client: OpenAI | null = null;
 
 export function getOpenAIClient(): OpenAI {
   if (!client) {
-    client = new OpenAI({ apiKey: getEnv().OPENAI_API_KEY });
+    const env = getEnv();
+    client = new OpenAI({ apiKey: env.OPENAI_API_KEY, baseURL: env.OPENAI_BASE_URL });
   }
   return client;
 }
