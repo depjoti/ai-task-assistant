@@ -4,6 +4,7 @@ import { getOpenAIClient } from "./client";
 interface ChatCompletionArgs {
   messages: { role: "user" | "assistant"; content: string }[];
   systemPrompt?: string;
+  jsonMode?: boolean;
 }
 
 const DEFAULT_CHAT_MODEL = "gpt-4o-mini";
@@ -31,6 +32,7 @@ export async function completeChat(args: ChatCompletionArgs): Promise<string> {
   const completion = await client.chat.completions.create({
     model: getEnv().OPENAI_MODEL ?? DEFAULT_CHAT_MODEL,
     stream: false,
+    response_format: args.jsonMode ? { type: "json_object" } : undefined,
     messages: buildMessages(args),
   });
 

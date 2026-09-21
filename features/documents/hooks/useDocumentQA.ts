@@ -4,8 +4,8 @@ import type { SerializedError } from "@reduxjs/toolkit";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 import { useCallback, useState } from "react";
 
+import { getApiErrorMessage } from "@/lib/api/errors";
 import { useAskQuestionMutation } from "../api/documentsApi";
-import { getApiErrorMessage } from "../api/errors";
 import type { AskResponse } from "../types/schema";
 
 export function useDocumentQA() {

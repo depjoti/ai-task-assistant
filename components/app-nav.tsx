@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 const links = [
   { href: "/", label: "Chat" },
   { href: "/documents", label: "Documents" },
+  { href: "/agent-tasks", label: "Tasks" },
 ];
 
 export function AppNav() {

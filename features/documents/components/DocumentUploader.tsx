@@ -5,8 +5,8 @@ import { useRef, type ChangeEvent } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getApiErrorMessage } from "@/lib/api/errors";
 import { useListDocumentsQuery, useUploadDocumentMutation } from "../api/documentsApi";
-import { getApiErrorMessage } from "../api/errors";
 
 export function DocumentUploader() {
   const { data: documents = [], isLoading: isListLoading } = useListDocumentsQuery();
