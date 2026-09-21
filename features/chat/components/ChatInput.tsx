@@ -5,6 +5,7 @@ import { useState, type KeyboardEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ChatInputProps {
   disabled: boolean;
@@ -43,27 +44,39 @@ export function ChatInput({ disabled, isStreaming, onSend, onStop }: ChatInputPr
           className="max-h-40 resize-none border-0 shadow-none focus-visible:ring-0 dark:bg-transparent"
         />
         {isStreaming ? (
-          <Button
-            type="button"
-            variant="secondary"
-            size="icon"
-            className="shrink-0 rounded-full"
-            onClick={onStop}
-            aria-label="Stop generating"
-          >
-            <Square className="size-3.5 fill-current" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                className="shrink-0 rounded-full"
+                onClick={onStop}
+                aria-label="Stop generating"
+              >
+                <Square className="size-3.5 fill-current" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Stop generating</TooltipContent>
+          </Tooltip>
         ) : (
-          <Button
-            type="button"
-            size="icon"
-            className="shrink-0 rounded-full"
-            onClick={handleSend}
-            disabled={disabled || !value.trim()}
-            aria-label="Send message"
-          >
-            <ArrowUp className="size-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-flex shrink-0">
+                <Button
+                  type="button"
+                  size="icon"
+                  className="rounded-full"
+                  onClick={handleSend}
+                  disabled={disabled || !value.trim()}
+                  aria-label="Send message"
+                >
+                  <ArrowUp className="size-4" />
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>Send message</TooltipContent>
+          </Tooltip>
         )}
       </div>
     </div>

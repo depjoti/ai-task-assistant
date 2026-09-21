@@ -6,6 +6,7 @@ import { useState, type KeyboardEvent } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useDocumentQA } from "../hooks/useDocumentQA";
 import { SourceSnippet } from "./SourceSnippet";
 
@@ -37,16 +38,23 @@ export function AskPanel() {
           aria-label="Question"
           className="max-h-40 resize-none border-0 shadow-none focus-visible:ring-0 dark:bg-transparent"
         />
-        <Button
-          type="button"
-          size="icon"
-          className="shrink-0 rounded-full"
-          onClick={handleAsk}
-          disabled={isLoading || !value.trim()}
-          aria-label="Ask"
-        >
-          <ArrowUp className="size-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="inline-flex shrink-0">
+              <Button
+                type="button"
+                size="icon"
+                className="rounded-full"
+                onClick={handleAsk}
+                disabled={isLoading || !value.trim()}
+                aria-label="Ask"
+              >
+                <ArrowUp className="size-4" />
+              </Button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>Ask</TooltipContent>
+        </Tooltip>
       </div>
 
       {error && <p className="text-destructive text-sm">{error}</p>}

@@ -5,6 +5,7 @@ import "./globals.css";
 import { StoreProvider } from "@/lib/redux/provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppNav } from "@/components/app-nav";
 
 const geistSans = Geist({
@@ -31,11 +32,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="flex h-dvh flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <StoreProvider>
-            <AppNav />
-            <div className="flex min-h-0 flex-1 flex-col">{children}</div>
-            <Toaster />
-          </StoreProvider>
+          <TooltipProvider>
+            <StoreProvider>
+              <AppNav />
+              <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+              <Toaster />
+            </StoreProvider>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>
