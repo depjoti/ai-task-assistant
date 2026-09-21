@@ -1,22 +1,38 @@
 import { getEnv } from "@/lib/env";
 import { getOpenAIClient } from "./client";
 
-interface StreamChatCompletionArgs {
+interface ChatCompletionArgs {
   messages: { role: "user" | "assistant"; content: string }[];
   systemPrompt?: string;
 }
 
 const DEFAULT_CHAT_MODEL = "gpt-4o-mini";
 
-export async function streamChatCompletion({ messages, systemPrompt }: StreamChatCompletionArgs) {
+function buildMessages({ messages, systemPrompt }: ChatCompletionArgs) {
+  return [
+    ...(systemPrompt ? [{ role: "system" as const, content: systemPrompt }] : []),
+    ...messages,
+  ];
+}
+
+export async function streamChatCompletion(args: ChatCompletionArgs) {
   const client = getOpenAIClient();
 
   return client.chat.completions.create({
     model: getEnv().OPENAI_MODEL ?? DEFAULT_CHAT_MODEL,
     stream: true,
-    messages: [
-      ...(systemPrompt ? [{ role: "system" as const, content: systemPrompt }] : []),
-      ...messages,
-    ],
+    messages: buildMessages(args),
   });
+}
+
+export async function completeChat(args: ChatCompletionArgs): Promise<string> {
+  const client = getOpenAIClient();
+
+  const completion = await client.chat.completions.create({
+    model: getEnv().OPENAI_MODEL ?? DEFAULT_CHAT_MODEL,
+    stream: false,
+    messages: buildMessages(args),
+  });
+
+  return completion.choices[0]?.message?.content ?? "";
 }
