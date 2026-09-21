@@ -11,6 +11,14 @@ vi.mock("@upstash/redis", () => ({
     async hgetall(key: string) {
       return redisData[key] && Object.keys(redisData[key]).length > 0 ? redisData[key] : null;
     }
+    async del(...keys: string[]) {
+      let deleted = 0;
+      for (const key of keys) {
+        if (redisData[key]) deleted += 1;
+        delete redisData[key];
+      }
+      return deleted;
+    }
   },
 }));
 
@@ -70,5 +78,20 @@ describe("document store", () => {
   it("returns an empty list when nothing has been added", async () => {
     expect(await listDocuments()).toEqual([]);
     expect(await searchTopK([1, 0], 5)).toEqual([]);
+  });
+
+  it("replaces the previous document instead of accumulating a library", async () => {
+    await addDocument({ id: "doc-1", name: "first.txt", chunkCount: 1 }, [
+      { id: "c1", documentId: "doc-1", documentName: "first.txt", content: "first content", embedding: [1, 0] },
+    ]);
+
+    await addDocument({ id: "doc-2", name: "second.txt", chunkCount: 1 }, [
+      { id: "c2", documentId: "doc-2", documentName: "second.txt", content: "second content", embedding: [0, 1] },
+    ]);
+
+    expect(await listDocuments()).toEqual([{ id: "doc-2", name: "second.txt", chunkCount: 1 }]);
+
+    const results = await searchTopK([0, 1], 10);
+    expect(results.map((r) => r.id)).toEqual(["c2"]);
   });
 });
