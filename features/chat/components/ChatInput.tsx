@@ -1,6 +1,6 @@
 "use client";
 
-import { Send, Square } from "lucide-react";
+import { ArrowUp, Square } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -30,31 +30,42 @@ export function ChatInput({ disabled, isStreaming, onSend, onStop }: ChatInputPr
   };
 
   return (
-    <div className="flex items-end gap-2 border-t p-4">
-      <Textarea
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Ask something…"
-        rows={2}
-        disabled={disabled}
-        aria-label="Message"
-        className="resize-none"
-      />
-      {isStreaming ? (
-        <Button type="button" variant="outline" onClick={onStop} aria-label="Stop generating">
-          <Square className="size-4" />
-        </Button>
-      ) : (
-        <Button
-          type="button"
-          onClick={handleSend}
-          disabled={disabled || !value.trim()}
-          aria-label="Send message"
-        >
-          <Send className="size-4" />
-        </Button>
-      )}
+    <div className="border-t p-4">
+      <div className="bg-card focus-within:ring-ring/50 flex items-end gap-2 rounded-2xl border p-2 shadow-sm transition-shadow focus-within:ring-2">
+        <Textarea
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask something…"
+          rows={1}
+          disabled={disabled}
+          aria-label="Message"
+          className="max-h-40 resize-none border-0 shadow-none focus-visible:ring-0 dark:bg-transparent"
+        />
+        {isStreaming ? (
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon"
+            className="shrink-0 rounded-full"
+            onClick={onStop}
+            aria-label="Stop generating"
+          >
+            <Square className="size-3.5 fill-current" />
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            size="icon"
+            className="shrink-0 rounded-full"
+            onClick={handleSend}
+            disabled={disabled || !value.trim()}
+            aria-label="Send message"
+          >
+            <ArrowUp className="size-4" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

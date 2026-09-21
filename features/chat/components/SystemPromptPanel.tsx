@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Settings2 } from "lucide-react";
 import { useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -21,17 +21,26 @@ export function SystemPromptPanel({ value, onChange }: SystemPromptPanelProps) {
       <Button
         type="button"
         variant="ghost"
-        className="w-full justify-between rounded-none px-4 py-2 text-sm font-medium"
+        className="text-muted-foreground hover:text-foreground w-full justify-between rounded-none px-4 py-2.5 text-sm font-medium"
         onClick={() => setOpen((prev) => !prev)}
         aria-expanded={open}
         aria-controls={fieldId}
       >
-        System prompt
+        <span className="flex items-center gap-1.5">
+          <Settings2 className="size-3.5" />
+          System prompt
+        </span>
         <ChevronDown className={cn("size-4 transition-transform", open && "rotate-180")} />
       </Button>
       {open && (
         <div id={fieldId} className="px-4 pb-4">
-          <Textarea value={value} onChange={(event) => onChange(event.target.value)} rows={3} aria-label="System prompt" />
+          <Textarea
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            rows={3}
+            aria-label="System prompt"
+            className="text-sm"
+          />
         </div>
       )}
     </div>

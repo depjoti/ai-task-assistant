@@ -14,7 +14,7 @@ interface ChatState {
 
 const initialState: ChatState = {
   messages: [],
-  systemPrompt: "You are a helpful assistant.",
+  systemPrompt: "You are a helpful assistant. Reply in plain prose with no markdown formatting.",
   status: "idle",
   error: null,
 };

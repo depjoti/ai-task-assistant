@@ -7,7 +7,7 @@ const meta: Meta<typeof TaskStep> = {
   title: "AgentTasks/TaskStep",
   component: TaskStep,
   parameters: { layout: "padded" },
-  args: { onApprove: fn(), onReject: fn(), onRetry: fn() },
+  args: { onApprove: fn(), onReject: fn(), onRetry: fn(), isLast: true },
 };
 
 export default meta;
