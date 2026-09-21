@@ -3,6 +3,7 @@
 import { nanoid } from "@reduxjs/toolkit";
 import { useCallback, useRef } from "react";
 
+import { useRecordHistoryEntry } from "@/features/search/hooks/useRecordHistoryEntry";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import { streamChat } from "../api/streamChat";
 import {
@@ -25,6 +26,7 @@ export function useChatStream() {
   const status = useAppSelector(selectChatStatus);
   const error = useAppSelector(selectChatError);
   const abortRef = useRef<AbortController | null>(null);
+  const recordHistoryEntry = useRecordHistoryEntry();
 
   const sendMessage = useCallback(
     async (content: string) => {
@@ -44,13 +46,19 @@ export function useChatStream() {
       const controller = new AbortController();
       abortRef.current = controller;
 
+      let fullResponse = "";
+
       try {
         await streamChat(
           { messages: history, systemPrompt },
-          (delta) => dispatch(assistantMessageChunkAppended({ id: assistantId, delta })),
+          (delta) => {
+            fullResponse += delta;
+            dispatch(assistantMessageChunkAppended({ id: assistantId, delta }));
+          },
           controller.signal,
         );
         dispatch(streamCompleted());
+        recordHistoryEntry("chat", trimmed.slice(0, 80), fullResponse);
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") {
           dispatch(streamCompleted());
@@ -61,7 +69,7 @@ export function useChatStream() {
         abortRef.current = null;
       }
     },
-    [dispatch, messages, status, systemPrompt],
+    [dispatch, messages, status, systemPrompt, recordHistoryEntry],
   );
 
   const stopStreaming = useCallback(() => {

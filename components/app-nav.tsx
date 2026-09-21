@@ -9,6 +9,7 @@ const links = [
   { href: "/", label: "Chat" },
   { href: "/documents", label: "Documents" },
   { href: "/agent-tasks", label: "Tasks" },
+  { href: "/search", label: "Search" },
 ];
 
 export function AppNav() {

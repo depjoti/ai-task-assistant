@@ -5,6 +5,7 @@ import { nanoid } from "@reduxjs/toolkit";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 import { useCallback } from "react";
 
+import { useRecordHistoryEntry } from "@/features/search/hooks/useRecordHistoryEntry";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import { useAppDispatch, useAppSelector, useAppStore } from "@/lib/redux/hooks";
 import { usePlanTaskMutation, useRunStepMutation } from "../api/agentTasksApi";
@@ -13,6 +14,7 @@ import {
   approvalRejected,
   planReceived,
   selectTaskError,
+  selectTaskGoal,
   selectTaskInput,
   selectTaskSteps,
   selectTaskStatus,
@@ -34,6 +36,7 @@ export function useAgentTask() {
 
   const [planTaskMutation] = usePlanTaskMutation();
   const [runStepMutation] = useRunStepMutation();
+  const recordHistoryEntry = useRecordHistoryEntry();
 
   const inputForStep = useCallback(
     (index: number): string => {
@@ -47,6 +50,7 @@ export function useAgentTask() {
   const runFrom = useCallback(
     async (startIndex: number) => {
       const currentSteps = selectTaskSteps(store.getState());
+      let lastOutput = "";
 
       for (let index = startIndex; index < currentSteps.length; index += 1) {
         const step = currentSteps[index];
@@ -61,6 +65,7 @@ export function useAgentTask() {
         try {
           const response = await runStepMutation({ kind: step.kind, input: inputForStep(index) }).unwrap();
           dispatch(stepCompleted({ id: step.id, output: response.output }));
+          lastOutput = response.output;
         } catch (err) {
           dispatch(
             stepFailed({
@@ -73,8 +78,9 @@ export function useAgentTask() {
       }
 
       dispatch(taskCompleted());
+      recordHistoryEntry("agent_task", selectTaskGoal(store.getState()), lastOutput);
     },
-    [dispatch, inputForStep, runStepMutation, store],
+    [dispatch, inputForStep, recordHistoryEntry, runStepMutation, store],
   );
 
   const submitTask = useCallback(
