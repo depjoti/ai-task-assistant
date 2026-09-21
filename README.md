@@ -31,6 +31,11 @@ provider-agnostic and is currently configured against two free services:
   also free, no card required.
 - **PDF text extraction** — [`unpdf`](https://www.npmjs.com/package/unpdf) (no API,
   runs locally).
+- **Document chunk/vector storage** — [Upstash Redis](https://upstash.com) via
+  [`@upstash/redis`](https://www.npmjs.com/package/@upstash/redis), a REST-based
+  client (no persistent TCP connection, so it works cleanly from serverless
+  functions). Free tier, no card required. Chosen so uploaded documents actually
+  survive across requests once deployed — see the note in Architecture below.
 
 ## Tech stack
 
@@ -55,6 +60,8 @@ OPENAI_API_KEY=your key
 OPENAI_BASE_URL=https://api.groq.com/openai/v1   # optional — omit to use real OpenAI
 OPENAI_MODEL=openai/gpt-oss-20b                    # optional — defaults to gpt-4o-mini
 GEMINI_API_KEY=your key                            # required for document Q&A
+UPSTASH_REDIS_REST_URL=your url                    # required for document Q&A
+UPSTASH_REDIS_REST_TOKEN=your token                # required for document Q&A
 ```
 
 ```bash
@@ -90,7 +97,7 @@ lib/
                            (chat.ts, embeddings.ts, agentTasks.ts, client.ts) — no
                            direct SDK or fetch-to-LLM calls from components or routes
   documents/               Server-side document processing: chunking, PDF/text
-                           extraction, and an in-memory vector store
+                           extraction, and a Redis-backed chunk/vector store
   api/errors.ts            Shared RTK Query error-message helper
   redux/                   Store assembly (store.ts, hooks.ts, provider.tsx).
                            Feature state lives in each feature's own slice, not a
@@ -118,12 +125,12 @@ e2e/                       Playwright specs
   Vercel AI SDK, just the Web Streams API on the server and `response.body.getReader()`
   on the client.
 - **Document Q&A** chunks the uploaded file, embeds each chunk, and stores
-  chunk+vector pairs in an in-memory, process-scoped store (`lib/documents/store.ts`).
-  This is a deliberate simplification for a `next dev` / demo context: it resets on
-  server restart and wouldn't survive across serverless instances in a real
-  deployment — a production version would swap it for a persistent vector store
-  without touching any other layer. Every answer shows the source snippet(s) it was
-  grounded in, with a similarity score.
+  chunk+vector pairs in Upstash Redis (`lib/documents/store.ts`) — a Redis hash per
+  collection (documents, chunks), fetched in full and ranked by cosine similarity in
+  JS on each query. That similarity search isn't as scalable as a real vector
+  database with an ANN index, but it's simple, has zero extra infrastructure, and is
+  plenty fast at the scale this project deals in. Every answer shows the source
+  snippet(s) it was grounded in, with a similarity score.
 - **Agent task runner** plans a goal into steps via the LLM's JSON mode (validated
   with Zod), then executes them in order: `pending → running → done/failed`. A step
   kind that's side-effecting (drafting outward-facing content) always requires an
@@ -147,8 +154,18 @@ e2e/                       Playwright specs
 
 ## Known limitations
 
-- The document store is in-memory (see above) — not durable, not multi-instance.
 - No formal Playwright e2e spec yet (`e2e/` is scaffolded but empty) — coverage so
   far has been manual, against a live dev server.
 - General chat replies can occasionally contain literal `**markdown**` syntax, since
   only the document Q&A and agent task prompts were told to avoid it.
+- Document retrieval ranks every stored chunk in JS rather than using a real vector
+  index — fine at this scale, would need revisiting for a large document set.
+
+## Hosting
+
+Deploys cleanly to [Vercel](https://vercel.com) (zero-config for Next.js): import
+the GitHub repo, add the environment variables above in the project settings, and
+deploy. All four features work correctly in that serverless environment — the
+Upstash-backed document store was specifically chosen so uploads don't get lost
+between requests hitting different function instances, which an in-memory store
+would suffer from.

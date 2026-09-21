@@ -7,6 +7,8 @@ const envSchema = z.object({
   OPENAI_BASE_URL: z.string().url().optional(),
   OPENAI_MODEL: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
+  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -20,6 +22,8 @@ export function getEnv(): Env {
       OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
       OPENAI_MODEL: process.env.OPENAI_MODEL,
       GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+      UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+      UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     });
   }
   return cached;

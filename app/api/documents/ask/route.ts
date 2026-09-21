@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
   const { question } = parsed.data;
   const queryEmbedding = await embedText(question);
-  const matches = searchTopK(queryEmbedding, TOP_K);
+  const matches = await searchTopK(queryEmbedding, TOP_K);
 
   if (matches.length === 0) {
     const response: AskResponse = {

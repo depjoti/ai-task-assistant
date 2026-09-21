@@ -1,3 +1,7 @@
+import { Redis } from "@upstash/redis";
+
+import { requireEnv } from "@/lib/env";
+
 export interface DocumentSummary {
   id: string;
   name: string;
@@ -16,20 +20,35 @@ export interface ScoredChunk extends DocumentChunk {
   score: number;
 }
 
-// In-memory and process-scoped: fine for `next dev` and for demoing this
-// feature, but it resets on restart and won't be shared across serverless
-// instances in a real deployment. A production version would swap this for
-// a persistent vector store without touching any other layer.
-const documents = new Map<string, DocumentSummary>();
-const chunks: DocumentChunk[] = [];
+const DOCUMENTS_KEY = "documents";
+const CHUNKS_KEY = "chunks";
 
-export function addDocument(document: DocumentSummary, documentChunks: DocumentChunk[]): void {
-  documents.set(document.id, document);
-  chunks.push(...documentChunks);
+let client: Redis | null = null;
+
+function getRedis(): Redis {
+  if (!client) {
+    client = new Redis({
+      url: requireEnv("UPSTASH_REDIS_REST_URL"),
+      token: requireEnv("UPSTASH_REDIS_REST_TOKEN"),
+    });
+  }
+  return client;
 }
 
-export function listDocuments(): DocumentSummary[] {
-  return Array.from(documents.values());
+export async function addDocument(document: DocumentSummary, documentChunks: DocumentChunk[]): Promise<void> {
+  const redis = getRedis();
+  await redis.hset(DOCUMENTS_KEY, { [document.id]: document });
+
+  if (documentChunks.length > 0) {
+    const chunkEntries = Object.fromEntries(documentChunks.map((chunk) => [chunk.id, chunk]));
+    await redis.hset(CHUNKS_KEY, chunkEntries);
+  }
+}
+
+export async function listDocuments(): Promise<DocumentSummary[]> {
+  const redis = getRedis();
+  const all = await redis.hgetall<Record<string, DocumentSummary>>(DOCUMENTS_KEY);
+  return all ? Object.values(all) : [];
 }
 
 function cosineSimilarity(a: number[], b: number[]): number {
@@ -47,7 +66,11 @@ function cosineSimilarity(a: number[], b: number[]): number {
   return denominator === 0 ? 0 : dot / denominator;
 }
 
-export function searchTopK(queryEmbedding: number[], k: number): ScoredChunk[] {
+export async function searchTopK(queryEmbedding: number[], k: number): Promise<ScoredChunk[]> {
+  const redis = getRedis();
+  const all = await redis.hgetall<Record<string, DocumentChunk>>(CHUNKS_KEY);
+  const chunks = all ? Object.values(all) : [];
+
   return chunks
     .map((chunk) => ({ ...chunk, score: cosineSimilarity(queryEmbedding, chunk.embedding) }))
     .sort((a, b) => b.score - a.score)

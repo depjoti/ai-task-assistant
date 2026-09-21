@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     embedding: embeddings[index],
   }));
 
-  addDocument({ id: documentId, name: file.name, chunkCount: documentChunks.length }, documentChunks);
+  await addDocument({ id: documentId, name: file.name, chunkCount: documentChunks.length }, documentChunks);
 
   const response: UploadDocumentResponse = {
     document: { id: documentId, name: file.name, chunkCount: documentChunks.length },
