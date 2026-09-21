@@ -1,9 +1,10 @@
 import { combineSlices, configureStore } from "@reduxjs/toolkit";
 
-// Feature slices are added here as they're built (e.g. `.inject(chatSlice)`
-// or combined directly) — this file stays a thin assembly point, not a
-// dumping ground for feature state.
-const rootReducer = combineSlices();
+import { chatSlice } from "@/features/chat/chatSlice";
+
+// Feature slices are added here as they're built — this file stays a thin
+// assembly point, not a dumping ground for feature state.
+const rootReducer = combineSlices(chatSlice);
 
 export type RootState = ReturnType<typeof rootReducer>;
 
